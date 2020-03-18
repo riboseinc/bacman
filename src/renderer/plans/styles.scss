@@ -1,0 +1,14 @@
+:local .base {
+  display: flex;
+  flex-flow: column nowrap;
+
+  > :first-child {
+    flex: 1;
+  }
+}
+
+:global .bp3-editable-text-editing {
+  &::before {
+    background: transparent !important;
+  }
+}

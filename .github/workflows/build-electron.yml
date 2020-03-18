@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build_for_mac:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-node@master
+      with:
+        node-version: 11
+    - name: Install dependencies
+      run: yarn install
+    - name: Compile
+      run: yarn compile
+    - name: Build
+      env:
+        AID: ${{ secrets.AID }}
+        AIP: ${{ secrets.AIP }}
+        CSC_LINK: ${{ secrets.CSC_LINK }}
+        CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+      run: yarn dist
+    - uses: actions/upload-artifact@master
+      with:
+        name: dist-mac
+        path: dist
+    - name: release
+      if: github.ref == 'refs/heads/master'
+      env:
+        AID: ${{ secrets.AID }}
+        AIP: ${{ secrets.AIP }}
+        CSC_LINK: ${{ secrets.CSC_LINK }}
+        CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        GH_TOKEN: ${{ secrets.GH_GLOSSARIST_CI_TOKEN }}
+      run: yarn release
+
+  build_for_windows:
+    runs-on: windows-2016
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-node@master
+      with:
+        node-version: 11
+    - name: Install dependencies
+      run: yarn install
+    - name: Compile
+      run: yarn compile
+    - name: Build
+      env:
+        CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+        CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      run: yarn dist
+    - uses: actions/upload-artifact@master
+      with:
+        name: dist-windows
+        path: dist
+    - name: release
+      if: github.ref == 'refs/heads/master'
+      env:
+        CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+        CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        GH_TOKEN: ${{ secrets.GH_GLOSSARIST_CI_TOKEN }}
+      run: yarn release
+

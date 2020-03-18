@@ -1,0 +1,34 @@
+= bacman -- Business Continuity Management
+
+Rhymes with "`Pacman`". A simple approach to business continuity management.
+
+
+== Purpose
+
+This application is used for business continuity management in accordance with
+the BCMS standard https://www.iso.org/standard/75106.html[ISO 22301:2019].
+
+
+== Functionality
+
+Bacman lets you manage:
+
+* Business continuity plans
+* Business continuity drills
+* Business continuity drill records
+
+
+== Data specification
+
+Bacman uses YAML to store data in accordance with the
+https://github.com/riboseinc/bc-drill-model[Ribose BC models].
+
+
+== License and credits
+
+See `LICENSE.adoc`.
+
+Copyright Ribose Inc.
+
+This application is built on the excellent https://www.coulomb.org[CoulombJS]
+framework.

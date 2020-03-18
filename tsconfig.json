@@ -1,0 +1,12 @@
+{
+  "extends": "./node_modules/electron-webpack/tsconfig-base.json",
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "lib": [
+      "es2019",
+      "DOM"
+    ],
+    "plugins": [{ "name": "typescript-plugin-css-modules" }],
+    "jsx": "react"
+  }
+}

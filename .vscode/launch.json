@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Dev with Yarn",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "yarn",
+            "runtimeArgs": [
+                "dev"
+            ],
+            "env": {
+                "ELECTRON_ARGS": "['--inspect-brk=9229']",
+                "NODE_ARGS": "['--inspect-brk=9229']"
+            },
+            "port": 9229,
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
+        }
+    ]
+}
