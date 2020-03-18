@@ -31,10 +31,6 @@ export const conf: AppConfig = {
     }
   },
 
-  help: {
-    rootURL: 'https://geolexica.org/desktop/help/',
-  },
-
   windows: {
     default: {
       openerParams: {
