@@ -27,7 +27,7 @@ export const conf: AppConfig = {
 
   databases: {
     default: {
-      verboseName: 'Concept database',
+      verboseName: 'BC database',
     }
   },
 
