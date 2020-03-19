@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 import slugify from 'slugify';
 
-import { Menu, Tree, ITreeNode, EditableText, Text, Button, Popover, Position, ButtonGroup, NonIdealState, PopoverInteractionKind, Divider } from '@blueprintjs/core';
+import {
+  Menu, Tree, ITreeNode, EditableText, Text, Button, Popover, Position,
+  ButtonGroup, NonIdealState, Divider } from '@blueprintjs/core';
 import { WindowComponentProps } from 'coulomb/config/renderer';
 import { callIPC } from 'coulomb/ipc/renderer';
 import { DatabaseList } from 'coulomb/db/renderer/status';

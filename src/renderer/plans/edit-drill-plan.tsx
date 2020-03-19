@@ -3,7 +3,7 @@ import moment from 'moment';
 import React, { useState, useEffect } from 'react';
 
 import {
-  NonIdealState, Spinner, Button, FormGroup,
+  Button, FormGroup,
   Divider, H4, NumericInput, Popover, Position, Menu, Tag } from '@blueprintjs/core';
 import { callIPC } from 'coulomb/ipc/renderer';
 
