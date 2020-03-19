@@ -47,6 +47,9 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
   const [sanitizedPlanRevision, updateSanitizedPlanRevision] =
     useState<BCDrillPlanRevision | undefined>(undefined);
 
+  // TODO: Get max ID instead.
+  // Could theoretically fail, mixes up index in array and revision ID:
+  const isLatestRevision = selectedRevisionID === revisions.length;
   const canAmendRevision =
     selectedRevisionID === revisions.length && selectedRevisionID > 0;
 
@@ -248,6 +251,7 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
             onClick={commitInProgress ? undefined : () => commitChanges()}
             active={commitInProgress}
             disabled={
+              !isLatestRevision ||
               sanitizedPlanRevision === undefined ||
               bcPlan.isUpdating ||
               !revision ||
@@ -263,10 +267,10 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
 
       <PlanForm
         plan={revision}
-        onItemDelete={handleItemDeletion}
-        onReqEdit={handleRequirementEdit}
-        onPrepEdit={handlePrepStepEdit}
-        onStepEdit={handleStepEdit}
+        onItemDelete={isLatestRevision ? handleItemDeletion : undefined}
+        onReqEdit={isLatestRevision ? handleRequirementEdit : undefined}
+        onPrepEdit={isLatestRevision ? handlePrepStepEdit : undefined}
+        onStepEdit={isLatestRevision ? handleStepEdit : undefined}
       />
     </div>
   );
