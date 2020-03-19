@@ -133,10 +133,6 @@ const Window: React.FC<WindowComponentProps> = function () {
     setMod('run-drill');
   }
 
-  async function handleShowDrillHistory(activityID: string, planID: string) {
-    setMod('show-history');
-  }
-
   async function handleEditDrillPlan(activityID: string, planID: string) {
     setMod('edit-plan');
   }
@@ -163,8 +159,6 @@ const Window: React.FC<WindowComponentProps> = function () {
   if (selectedPlanID !== null) {
     if (mod === 'run-drill') {
       mainPane = <RunDrill planID={selectedPlanID} />;
-    } else if (mod === 'show-history') {
-      mainPane = <DrillHistory planID={selectedPlanID} />;
     } else if (mod === 'edit-plan') {
       mainPane = <EditDrillPlan planID={selectedPlanID} />;
     } else {
@@ -382,4 +376,4 @@ function buildAcitvityNodes(
 
 export default Window;
 
-type Module = 'show-history' | 'run-drill' | 'edit-plan';
+type Module = 'run-drill' | 'edit-plan';
