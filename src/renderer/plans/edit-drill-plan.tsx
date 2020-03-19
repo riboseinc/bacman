@@ -1,7 +1,10 @@
 import * as log from 'electron-log';
+import moment from 'moment';
 import React, { useState, useEffect } from 'react';
 
-import { NonIdealState, Spinner, Button, FormGroup, H2, Divider, H4, InputGroup, NumericInput, H3 } from '@blueprintjs/core';
+import {
+  NonIdealState, Spinner, Button, FormGroup,
+  Divider, H4, NumericInput, Popover, Position, Menu, Tag } from '@blueprintjs/core';
 import { callIPC } from 'coulomb/ipc/renderer';
 
 import {
@@ -14,16 +17,15 @@ import {
 import { app } from 'renderer';
 import { AutoSizedTextArea } from 'renderer/widgets';
 import styles from './styles.scss';
-import moment from 'moment';
 
 
-function makeBlankDrillPlanRevision(id: number) {
+function makeBlankDrillPlanRevision(id: number): BCDrillPlanRevision {
   return {
     resourceRequirements: [],
     preparationSteps: [],
     steps: [],
     revisionID: id,
-    timeCreated: new Date(),
+    timeCreated: moment().toISOString(),
   };
 }
 
@@ -53,7 +55,10 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
 
   const hasUncommittedChanges = sanitizedPlanRevision && revision && bcPlan.object &&
     JSON.stringify([revision.resourceRequirements, revision.preparationSteps, revision.steps]) !==
-    JSON.stringify([sanitizedPlanRevision.resourceRequirements, sanitizedPlanRevision.preparationSteps, sanitizedPlanRevision.steps]);
+    JSON.stringify([
+      sanitizedPlanRevision.resourceRequirements.filter(i => i.description.trim() !== ''),
+      sanitizedPlanRevision.preparationSteps.filter(i => i.description.trim() !== ''),
+      sanitizedPlanRevision.steps.filter(i => i.description.trim() !== '')]);
 
   useEffect(() => {
     updateSanitizedPlanRevision(sanitizeEntry(revision));
@@ -83,9 +88,9 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
 
   useEffect(() => {
     if (bcPlan.object !== null) {
-      selectRevisionID(revisions.length);
+      setImmediate(() => selectRevisionID(revisions.length));
     }
-  }, [revisions.length]);
+  }, [JSON.stringify(revisions)]);
 
   useEffect(() => {
     if (selectedRevisionID !== null) {
@@ -125,7 +130,9 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
         const newRevision = {
           ...sanitizedPlanRevision,
           revisionID: sanitizedPlanRevision.revisionID + 1,
+          timeCreated: moment().toISOString(),
         };
+        console.debug(newRevision.timeCreated);
         newPlan = { ...bcPlan.object, drillPlan: [ ...revisions, newRevision ] };
       }
       setCommitInProgress(true);
@@ -213,50 +220,49 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
     });
   }
 
-  if (bcPlan.isUpdating) {
-    return <NonIdealState title={<Spinner />} />
-
-  } else if (bcPlan.object === null) {
-    return <NonIdealState title="Failed to load BC drill plan" />
-
-  } else {
-    return (
-      <div className={styles.drillPlanBase}>
-        <div className={styles.actions}>
-          <span className={styles.title}>
-            BC drill plan: {revision.revisionID < 1
-              ? <>initial revision</>
-              : <>rev. {revision.revisionID}</>}
-          </span>
-          <Button
-              large
-              onClick={commitInProgress ? undefined : () => commitChanges()}
-              active={commitInProgress}
-              disabled={
-                sanitizedPlanRevision === undefined ||
-                bcPlan.isUpdating ||
-                !revision ||
-                !hasUncommittedChanges}
-              intent="success">
-            {revision.revisionID < 1
-              ? <>Save plan</>
-              : <>Save as new plan revision</>}
-          </Button>
-        </div>
-
-        <Divider />
-
-        <PlanForm
-          plan={revision}
-          onItemDelete={handleItemDeletion}
-          onReqEdit={handleRequirementEdit}
-          onPrepEdit={handlePrepStepEdit}
-          onStepEdit={handleStepEdit}
-        />
+  return (
+    <div className={styles.drillPlanBase}>
+      <div className={styles.actions}>
+        <span className={styles.title}>
+          BC drill plan: {revision.revisionID < 1
+            ? <>initial revision</>
+            : <Popover
+                position={Position.BOTTOM}
+                content={
+                  <RevisionList
+                    revisions={revisions}
+                    selectedRevisionID={selectedRevisionID}
+                    onSelectRevision={(id: number) => selectRevisionID(id)} />
+                }><Button large>rev. {revision.revisionID}</Button></Popover>}
+        </span>
+        <Button
+            large
+            onClick={commitInProgress ? undefined : () => commitChanges()}
+            active={commitInProgress}
+            disabled={
+              sanitizedPlanRevision === undefined ||
+              bcPlan.isUpdating ||
+              !revision ||
+              !hasUncommittedChanges}
+            intent="success">
+          {revision.revisionID < 1
+            ? <>Save plan</>
+            : <>Save as new plan revision</>}
+        </Button>
       </div>
-    );
-  }
-};
+
+      <Divider />
+
+      <PlanForm
+        plan={revision}
+        onItemDelete={handleItemDeletion}
+        onReqEdit={handleRequirementEdit}
+        onPrepEdit={handlePrepStepEdit}
+        onStepEdit={handleStepEdit}
+      />
+    </div>
+  );
+}
 
 
 interface PlanFormProps {
@@ -351,7 +357,7 @@ const PlanForm: React.FC<PlanFormProps> = function ({
             <FormGroup
                 labelFor={`step-${idx}-desc`}
                 label={`Step ${idx + 1}:`}
-                labelInfo={idx !== (plan.preparationSteps.length - 1) && onItemDelete && onItemDelete('steps')
+                labelInfo={idx !== (plan.steps.length - 1) && onItemDelete && onItemDelete('steps')
                   ? <Button small minimal
                       title="Delete this preparatory step"
                       intent="danger"
@@ -397,15 +403,20 @@ const PlanForm: React.FC<PlanFormProps> = function ({
 
 interface RevisionListProps {
   revisions: BCDrillPlanRevision[]
+  selectedRevisionID: number | null
   onSelectRevision: (revisionID: number) => void
 }
-const RevisionList: React.FC<RevisionListProps> = function ({ revisions, onSelectRevision }) {
+const RevisionList: React.FC<RevisionListProps> = function ({ revisions, onSelectRevision, selectedRevisionID }) {
   return (
-    <div className={styles.revisionList}>
-      {revisions.map(rev =>
-        <Button onClick={() => onSelectRevision(rev.revisionID)}>
-          {rev.revisionID}
-        </Button>)}
-    </div>
+    <Menu className={styles.revisionList}>
+      {[ ...revisions.entries() ].map(([idx, rev]) =>
+        <Menu.Item
+          key={rev.revisionID}
+          active={rev.revisionID === selectedRevisionID}
+          text={`Revision ${rev.revisionID}: ${moment(rev.timeCreated).format('dddd, MMMM Do YYYY, h:mm:ss a')}`}
+          labelElement={idx === revisions.length - 1 ? <Tag minimal>Latest</Tag> : undefined}
+          onClick={() => onSelectRevision(rev.revisionID)}
+        />)}
+    </Menu>
   );
 };

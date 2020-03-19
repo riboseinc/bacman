@@ -74,9 +74,13 @@ export interface BCDrillPlanRevision {
   preparationSteps: BCDrillPreparationStep[]
   steps: BCDrillStepPlan[]
 
+
   // Newest drill plan for given BC plan is considered the one in effect.
   // Revisions are numbered automatically.
-  timeCreated: Date
+
+  timeCreated: string
+  // ISO date
+
   revisionID: number
 }
 
