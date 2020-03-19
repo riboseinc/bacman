@@ -1,6 +1,6 @@
 {
   "name": "bacman",
-  "version": "0.0.2-dev",
+  "version": "0.0.3-dev",
   "description": "Business (and activities) Continuity Manager for ISO 22301 BCMS",
   "repository": "git@github.com:riboseinc/bacman.git",
   "bugs": "https://github.com/riboseinc/bacman/issues",
