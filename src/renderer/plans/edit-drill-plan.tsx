@@ -388,8 +388,8 @@ const PlanForm: React.FC<PlanFormProps> = function ({
 
             <FormGroup
                 labelFor={`step-${idx}-time-allocation`}
-                label={`Time allowed:`}
-                helperText="A number of minutes."
+                label={`Minutes allowed:`}
+                helperText="Required."
                 intent={moment.duration(item.timeAllowed).minutes() < 1 ? 'danger' : undefined}>
               <NumericInput fill
                 value={`${moment.duration(item.timeAllowed).minutes()}`}
