@@ -53,12 +53,20 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
   const [commitInProgress, setCommitInProgress] =
     useState(false);
 
-  const hasUncommittedChanges = sanitizedPlanRevision && revision && bcPlan.object &&
-    JSON.stringify([revision.resourceRequirements, revision.preparationSteps, revision.steps]) !==
-    JSON.stringify([
-      sanitizedPlanRevision.resourceRequirements.filter(i => i.description.trim() !== ''),
-      sanitizedPlanRevision.preparationSteps.filter(i => i.description.trim() !== ''),
-      sanitizedPlanRevision.steps.filter(i => i.description.trim() !== '')]);
+  const hasUncommittedChanges =
+    sanitizedPlanRevision &&
+    revision &&
+    ((bcPlan.object?.drillPlan &&
+      selectedRevisionID !== null &&
+      JSON.stringify([
+        bcPlan.object.drillPlan.find(i => i.revisionID === selectedRevisionID)?.resourceRequirements || [],
+        bcPlan.object.drillPlan.find(i => i.revisionID === selectedRevisionID)?.preparationSteps || [],
+        bcPlan.object.drillPlan.find(i => i.revisionID === selectedRevisionID)?.steps || []]) !==
+      JSON.stringify([
+        sanitizedPlanRevision.resourceRequirements,
+        sanitizedPlanRevision.preparationSteps,
+        sanitizedPlanRevision.steps])) ||
+      (bcPlan.object?.drillPlan || []).length < 1);
 
   useEffect(() => {
     updateSanitizedPlanRevision(sanitizeEntry(revision));
