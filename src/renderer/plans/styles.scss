@@ -5,6 +5,7 @@
   display: flex;
   height: 100vh;
   flex-flow: row nowrap;
+  overflow: hidden;
 
   .sidebar {
     flex-shrink: 0;
@@ -35,6 +36,8 @@
   .drillPlan {
     flex: 1;
     box-shadow: $pt-elevation-shadow-2;
+    display: flex;
+    flex-flow: column nowrap;
   }
 }
 
@@ -54,7 +57,53 @@
   }
 }
 
+:local .drillPlanBase {
+  flex: 1;
+  display: flex;
+  flex-flow: column nowrap;
+  overflow: hidden;
 
-:local .editDrillPlanBase {
-  padding: 2rem;
+  > :first-child {
+    flex: 1;
+  }
+
+  .actions {
+    flex-shrink: 0;
+    padding: $pt-grid-size;
+    box-shadow: $pt-elevation-shadow-1;
+    background: #BFCCD6;
+  }
+}
+
+:local .drillPlanForm {
+  padding: $pt-grid-size * 4;
+  overflow-y: auto;
+
+  > * {
+    margin-bottom: $pt-grid-size * 2;
+  }
+
+  .drillPlanStep {
+    display: flex;
+    flex-flow: row nowrap;
+
+    > :first-child {
+      flex: 1;
+      margin-right: $pt-grid-size;
+    }
+  }
+  :global .bp3-form-group {
+    label.bp3-label {
+      z-index: 2;
+      position: relative;
+    }
+    textarea {
+      font-size: 120% !important;
+      background: whitesmoke;
+      box-shadow: none !important;
+      padding: $pt-grid-size !important;
+      margin: -$pt-grid-size;
+      z-index: -1;
+    }
+  }
 }

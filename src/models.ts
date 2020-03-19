@@ -69,7 +69,7 @@ type BCDrillType = 'Tabletop' | 'Live' | 'Discussion';
 
 /* Drill planning */
 
-interface BCDrillPlanRevision {
+export interface BCDrillPlanRevision {
   resourceRequirements: BCDrillResourceRequirement[]
   preparationSteps: BCDrillPreparationStep[]
   steps: BCDrillStepPlan[]
@@ -80,15 +80,17 @@ interface BCDrillPlanRevision {
   revisionID: number
 }
 
-interface BCDrillResourceRequirement {
+export interface BCDrillResourceRequirement {
   description: string
 }
 
-interface BCDrillPreparationStep {
+export interface BCDrillPreparationStep {
   description: string
 }
 
-interface BCDrillStepPlan {
+export interface BCDrillStepPlan {
   description: string
-  timeAllowed: Duration
+
+  timeAllowed: string
+  // ISO 8601 duration string
 }

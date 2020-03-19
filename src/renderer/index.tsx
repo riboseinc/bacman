@@ -24,6 +24,8 @@ export const conf: RendererConfig<typeof appConf> = {
   databaseStatusComponents: {
     default: () => import('coulomb/db/isogit-yaml/renderer/status'),
   },
+
+  contextProviders: [],
 };
 
 
