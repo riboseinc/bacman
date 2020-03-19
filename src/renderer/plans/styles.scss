@@ -72,6 +72,19 @@
     padding: $pt-grid-size;
     box-shadow: $pt-elevation-shadow-1;
     background: #BFCCD6;
+
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-items: center;
+
+    > .title {
+      color: $pt-text-color-disabled;
+      font-size: 160%;
+      font-weight: bold;
+      letter-spacing: -0.05em;
+      margin-right: $pt-grid-size * 2;
+    }
   }
 }
 
@@ -81,6 +94,10 @@
 
   > * {
     margin-bottom: $pt-grid-size * 2;
+  }
+
+  .drillPlanSectionHeader {
+    color: $pt-text-color-muted;
   }
 
   .drillPlanStep {
@@ -104,6 +121,11 @@
       padding: $pt-grid-size !important;
       margin: -$pt-grid-size;
       z-index: -1;
+      font-weight: bold;
+
+      &::placeholder {
+        font-weight: normal;
+      }
     }
   }
 }

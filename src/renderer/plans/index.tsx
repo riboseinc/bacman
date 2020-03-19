@@ -130,9 +130,13 @@ const Window: React.FC<WindowComponentProps> = function () {
   async function handleNodeClick(node: ITreeNode, nodePath: number[]) {
     if (JSON.stringify(selectedNode) === JSON.stringify(nodePath)) {
       setEditMode(true);
+    } else if (node.id === NEW_ID_PLACEHOLDER) {
+      selectPlanID(null);
+      selectNode(nodePath);
+      setImmediate(() => setEditMode(true));
     } else {
       const nodeData = node.nodeData as { bcPlanID?: string, activityID: string } | undefined;
-      if (node.id !== NEW_ID_PLACEHOLDER && nodeData?.bcPlanID) {
+      if (nodeData?.bcPlanID) {
         selectPlanID(nodeData.bcPlanID);
       } else {
         selectPlanID(null);

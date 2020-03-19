@@ -1,7 +1,7 @@
 import * as log from 'electron-log';
 import React, { useState, useEffect } from 'react';
 
-import { NonIdealState, Spinner, Button, FormGroup, H2, Divider, H4, InputGroup, NumericInput } from '@blueprintjs/core';
+import { NonIdealState, Spinner, Button, FormGroup, H2, Divider, H4, InputGroup, NumericInput, H3 } from '@blueprintjs/core';
 import { callIPC } from 'coulomb/ipc/renderer';
 
 import {
@@ -230,6 +230,11 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
           onStepEdit={handleStepEdit}
         />
         <div className={styles.actions}>
+          <span className={styles.title}>
+            BC drill plan: {revision.revisionID < 1
+              ? <>initial revision</>
+              : <>rev. {revision.revisionID}</>}
+          </span>
           <Button
               large
               onClick={commitInProgress ? undefined : () => commitChanges()}
@@ -240,7 +245,9 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
                 !revision ||
                 !hasUncommittedChanges}
               intent="success">
-            Create revision {revision.revisionID + 1}
+            {revision.revisionID < 1
+              ? <>Save plan</>
+              : <>Save as new plan revision</>}
           </Button>
         </div>
       </div>
@@ -275,7 +282,7 @@ const PlanForm: React.FC<PlanFormProps> = function ({
     <div className={styles.drillPlanForm}>
 
       <div className={styles.drillPlanRequirements}>
-        <H4>Resource requirements</H4>
+        <H4 className={styles.drillPlanSectionHeader}>Resource requirements</H4>
         {[...plan.resourceRequirements.entries()].map(([idx, item]) =>
           <FormGroup
               key={`resource-requirement-${idx}`}
@@ -305,7 +312,7 @@ const PlanForm: React.FC<PlanFormProps> = function ({
       </div>
 
       <div className={styles.drillPlanPreparationSteps}>
-        <H4>Preparatory steps</H4>
+        <H4 className={styles.drillPlanSectionHeader}>Preparatory steps</H4>
         {[...plan.preparationSteps.entries()].map(([idx, item]) =>
           <FormGroup
               key={`prep-step-${idx}`}
@@ -335,7 +342,7 @@ const PlanForm: React.FC<PlanFormProps> = function ({
       </div>
 
       <div className={styles.drillPlanSteps}>
-        <H4>Drill steps</H4>
+        <H4 className={styles.drillPlanSectionHeader}>Drill steps</H4>
         {[...plan.steps.entries()].map(([idx, item]) =>
           <div className={styles.drillPlanStep} key={idx}>
             <FormGroup
@@ -364,8 +371,9 @@ const PlanForm: React.FC<PlanFormProps> = function ({
 
             <FormGroup
                 labelFor={`step-${idx}-time-allocation`}
-                label={`Time allowed, in minutes:`}
-                intent={moment.duration(item.timeAllowed).milliseconds() < 1 ? 'danger' : undefined}>
+                label={`Time allowed:`}
+                helperText="A number of minutes."
+                intent={moment.duration(item.timeAllowed).minutes() < 1 ? 'danger' : undefined}>
               <NumericInput fill
                 value={`${moment.duration(item.timeAllowed).minutes()}`}
                 id={`step-${idx}-time-allocation`}
