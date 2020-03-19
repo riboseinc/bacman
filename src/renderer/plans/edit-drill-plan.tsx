@@ -222,13 +222,6 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
   } else {
     return (
       <div className={styles.drillPlanBase}>
-        <PlanForm
-          plan={revision}
-          onItemDelete={handleItemDeletion}
-          onReqEdit={handleRequirementEdit}
-          onPrepEdit={handlePrepStepEdit}
-          onStepEdit={handleStepEdit}
-        />
         <div className={styles.actions}>
           <span className={styles.title}>
             BC drill plan: {revision.revisionID < 1
@@ -250,6 +243,16 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
               : <>Save as new plan revision</>}
           </Button>
         </div>
+
+        <Divider />
+
+        <PlanForm
+          plan={revision}
+          onItemDelete={handleItemDeletion}
+          onReqEdit={handleRequirementEdit}
+          onPrepEdit={handlePrepStepEdit}
+          onStepEdit={handleStepEdit}
+        />
       </div>
     );
   }

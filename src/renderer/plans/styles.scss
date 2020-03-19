@@ -35,7 +35,7 @@
 
   .drillPlan {
     flex: 1;
-    box-shadow: $pt-elevation-shadow-2;
+    box-shadow: $pt-elevation-shadow-1;
     display: flex;
     flex-flow: column nowrap;
   }
@@ -63,15 +63,13 @@
   flex-flow: column nowrap;
   overflow: hidden;
 
-  > :first-child {
+  > :last-child {
     flex: 1;
   }
 
   .actions {
     flex-shrink: 0;
-    padding: $pt-grid-size;
-    box-shadow: $pt-elevation-shadow-1;
-    background: #BFCCD6;
+    padding: $pt-grid-size ($pt-grid-size * 4);
 
     display: flex;
     flex-flow: row nowrap;
@@ -79,11 +77,12 @@
     align-items: center;
 
     > .title {
+      line-height: 1;
       color: $pt-text-color-disabled;
       font-size: 160%;
       font-weight: bold;
       letter-spacing: -0.05em;
-      margin-right: $pt-grid-size * 2;
+      flex: 1;
     }
   }
 }
