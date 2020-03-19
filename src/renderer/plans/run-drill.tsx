@@ -43,6 +43,10 @@ export const RunDrill: React.FC<RunDrillProps> = function ({ planID }) {
 
   const [secondsElapsed, updateSecondsElapsed] = useState<number>(0);
 
+  var pastDrills = Object.values(drills.objects).
+      filter(dr => dr.bcPlanID === planID && dr.endTime !== undefined);
+  pastDrills.reverse();
+
   useEffect(() => {
     countSeconds();
     const interval = setInterval(countSeconds, 1000);
@@ -60,6 +64,10 @@ export const RunDrill: React.FC<RunDrillProps> = function ({ planID }) {
       updateDrillReport(drillInProgress.report);
     }
   }, [drillInProgress]);
+
+  useEffect(() => {
+    updateDrillReport(undefined);
+  }, [planID]);
 
   const activeDrill = app.useOne<BCDrill, string>('drill', drillInProgress?.id || null);
 
@@ -132,7 +140,11 @@ export const RunDrill: React.FC<RunDrillProps> = function ({ planID }) {
       await callIPC<{ commit: boolean, objectID: string, object: BCDrill }, { success: true }>
       ('model-drill-update-one', {
         objectID: activeDrill.object.id,
-        object: { ...activeDrill.object, endTime: endTime.toDate() },
+        object: {
+          ...activeDrill.object,
+          report: drillReport || activeDrill.object.report,
+          endTime: endTime.toDate(),
+        },
         commit: true,
       });
       //setActiveDrillID(activeDrill.object.id);
@@ -209,9 +221,7 @@ export const RunDrill: React.FC<RunDrillProps> = function ({ planID }) {
   return (
     <div className={styles.mainPaneInner}>
       <div className={styles.toolbar}>
-        <span className={styles.title}>
-          {bcPlan.object?.purpose}:
-          {" "}
+        <Text ellipsize className={styles.title}>
           {drillInProgress
             ? <>
                 Drill in progress:
@@ -227,7 +237,7 @@ export const RunDrill: React.FC<RunDrillProps> = function ({ planID }) {
                   : undefined}
               </>
             : <>Run drill</>}
-        </span>
+        </Text>
         <ButtonGroup>
           <Button
               key="start"
@@ -255,7 +265,7 @@ export const RunDrill: React.FC<RunDrillProps> = function ({ planID }) {
               large
               onClick={handleSaveReport}
               active={commitInProgress}
-              disabled={drillReport === undefined}
+              disabled={drillReport === undefined || drillInProgress === undefined}
               icon="floppy-disk">
             Save report
           </Button>
@@ -268,15 +278,31 @@ export const RunDrill: React.FC<RunDrillProps> = function ({ planID }) {
         ? <DrillReportForm
             plan={drillPlan}
             report={drillReport}
-            onAuthorsChange={handleAuthorsChange}
-            onStepParticipantsChange={handleStepParticipantsChange}
-            onStepActivityTypeChange={handleStepActivityTypeSet}
-            onStepResultUpdate={handleStepResultUpdate}
-            onFollowUpActionUpdate={handleFollowUpActionUpdate}
-            onStepStart={handleStepStart}
-            onStepEnd={handleStepEnd}
+            onAuthorsChange={drillInProgress ? handleAuthorsChange : undefined}
+            onStepParticipantsChange={drillInProgress ? handleStepParticipantsChange : undefined}
+            onStepActivityTypeChange={drillInProgress ? handleStepActivityTypeSet : undefined}
+            onStepResultUpdate={drillInProgress ? handleStepResultUpdate : undefined}
+            onFollowUpActionUpdate={drillInProgress ? handleFollowUpActionUpdate : undefined}
+            onStepStart={drillInProgress ? handleStepStart : undefined}
+            onStepEnd={drillInProgress ? handleStepEnd : undefined}
           />
-        : <NonIdealState title="No active drill at the moment." />}
+        : <NonIdealState
+            title="No drill to show."
+            description={<div className={styles.noDrillPrompt}>
+              <Text>
+                Start a new drill above, or select a past report to review:
+              </Text>
+              <UL className={styles.pastDrillList}>
+                {pastDrills.map(dr =>
+                  <li key={dr.id} className={styles.pastDrillEntry}>
+                    <a onClick={() => updateDrillReport(dr.report)}>
+                      <Text ellipsize>{dr.id}</Text>
+                    </a>
+                  </li>
+                )}
+              </UL>
+            </div>}
+          />}
       
     </div>
   );
@@ -377,6 +403,7 @@ const DrillReportForm: React.FC<DrillReportFormProps> = function ({
         <div className={styles.reportAuthors}>
           <FormGroup label="Report authors:">
             <TagInput
+              placeholder="Enter a name and press Enter"
               values={report.authors.map(a => a.name)}
               disabled={!onAuthorsChange}
               onChange={(values: React.ReactNode[]) => onAuthorsChange
@@ -489,6 +516,7 @@ const StepReport: React.FC<StepReportProps> = function ({
         <div className={styles.stepResponsible}>
           <FormGroup label="Responsible:">
             <TagInput
+              placeholder="Enter a name and press Enter"
               values={step.responsible.map(a => a.name)}
               disabled={!onResponsibleChange}
               onChange={(values: React.ReactNode[]) => onResponsibleChange
@@ -500,6 +528,7 @@ const StepReport: React.FC<StepReportProps> = function ({
         <div className={styles.stepParticipants}>
           <FormGroup label="Participants:">
             <TagInput
+              placeholder="Enter a name and press Enter"
               values={step.participants.map(a => a.name)}
               disabled={!onParticipantsChange}
               onChange={(values: React.ReactNode[]) => onParticipantsChange

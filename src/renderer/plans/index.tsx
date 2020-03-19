@@ -56,7 +56,6 @@ const Window: React.FC<WindowComponentProps> = function () {
       handlePlanUpdate,
 
       mod,
-      handleShowDrillHistory,
       handleDrillStart,
       handleEditDrillPlan));
   }, [
@@ -225,7 +224,6 @@ function buildAcitvityNodes(
     onUpdatePlan: (plan: BCPlan) => void,
 
     mod: Module,
-    onShowDrillReports: (activityID: string, planID: string) => void,
     onDrillStart: (activityID: string, planID: string) => void,
     onReviseDrillPlan: (activityID: string, planID: string) => void,
   ): ITreeNode[] {
@@ -350,15 +348,6 @@ function buildAcitvityNodes(
                           active={isSelected && mod === 'run-drill'}
                           title="Start drill…"
                           icon="record"
-                        />
-                      <Button
-                          key="view-reports"
-                          onClick={() => onShowDrillReports(activity.id, plan.id)}
-                          small
-                          minimal
-                          active={isSelected && mod === 'show-history'}
-                          title="View past drill reports…"
-                          icon="history"
                         />
                       <Button
                           key="edit-plan"

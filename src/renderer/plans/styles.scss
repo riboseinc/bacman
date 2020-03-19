@@ -77,7 +77,6 @@
     align-items: center;
 
     > .title {
-      line-height: 1;
       color: $pt-text-color-disabled;
       font-size: 160%;
       font-weight: bold;
@@ -161,6 +160,26 @@
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
+
+    > :first-child {
+      margin-right: $pt-grid-size;
+    }
+  }
+}
+
+:local .noDrillPrompt {
+  max-height: 70vh;
+  overflow: hidden;
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+:local .pastDrillList {
+  overflow-y: auto;
+
+  .pastDrillEntry {
+    display: flex;
+    flex-flow: row nowrap;
 
     > :first-child {
       margin-right: $pt-grid-size;
