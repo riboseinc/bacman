@@ -251,7 +251,7 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
             onClick={commitInProgress ? undefined : () => commitChanges()}
             active={commitInProgress}
             disabled={
-              !isLatestRevision ||
+              (selectedRevisionID !== null && !isLatestRevision) ||
               sanitizedPlanRevision === undefined ||
               bcPlan.isUpdating ||
               !revision ||
@@ -267,10 +267,10 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
 
       <PlanForm
         plan={revision}
-        onItemDelete={isLatestRevision ? handleItemDeletion : undefined}
-        onReqEdit={isLatestRevision ? handleRequirementEdit : undefined}
-        onPrepEdit={isLatestRevision ? handlePrepStepEdit : undefined}
-        onStepEdit={isLatestRevision ? handleStepEdit : undefined}
+        onItemDelete={(selectedRevisionID === null || isLatestRevision) ? handleItemDeletion : undefined}
+        onReqEdit={(selectedRevisionID === null || isLatestRevision) ? handleRequirementEdit : undefined}
+        onPrepEdit={(selectedRevisionID === null || isLatestRevision) ? handlePrepStepEdit : undefined}
+        onStepEdit={(selectedRevisionID === null || isLatestRevision) ? handleStepEdit : undefined}
       />
     </div>
   );
