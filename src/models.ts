@@ -39,7 +39,7 @@ export interface BCDrill {
   bcPlanID: string
   bcDrillPlanRevisionID: number
   startTime: Date
-  endTime: Date
+  endTime?: Date
 
   report: BCDrillReport
 }
@@ -47,24 +47,24 @@ export interface BCDrill {
 
 /* Drill reporting */
 
-interface BCDrillReport {
+export interface BCDrillReport {
   followUpAction: string
   steps: BCDrillStepReport[]
   authors: BCDrillParticipant[]
 }
 
-interface BCDrillStepReport {
+export interface BCDrillStepReport {
   plan: BCDrillStepPlan
 
   responsible: BCDrillParticipant[]
   participants: BCDrillParticipant[]
   result: string
-  type: BCDrillType
-  startTime: Date
-  endTime: Date
+  activityType: BCDrillActivityType
+  startTime?: Date
+  endTime?: Date
 }
 
-type BCDrillType = 'Tabletop' | 'Live' | 'Discussion';
+export type BCDrillActivityType = 'Tabletop' | 'Live' | 'Discussion';
 
 
 /* Drill planning */

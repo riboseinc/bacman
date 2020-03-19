@@ -15,6 +15,8 @@ import { conf as rendererConf } from 'renderer';
 import { app } from 'renderer';
 import styles from './styles.scss';
 import { EditDrillPlan } from './edit-drill-plan';
+import { RunDrill } from './run-drill';
+import { DrillHistory } from './drill-history';
 
 
 interface RetireableQuery {
@@ -52,8 +54,11 @@ const Window: React.FC<WindowComponentProps> = function () {
       () => setEditMode(false),
       handleActivityUpdate,
       handlePlanUpdate,
-      handleShowDrillPlan,
-      handleDrillStart));
+
+      mod,
+      handleShowDrillHistory,
+      handleDrillStart,
+      handleEditDrillPlan));
   }, [
     JSON.stringify(activities.objects),
     JSON.stringify(plans.objects),
@@ -70,6 +75,8 @@ const Window: React.FC<WindowComponentProps> = function () {
       databases={appConf.databases}
       databaseStatusComponents={rendererConf.databaseStatusComponents} />
   ), Object.keys(appConf.databases));
+
+  const [mod, setMod] = useState<Module>('edit-plan');
 
 
   async function handleActivityUpdate(activity: BCActivity) {
@@ -124,9 +131,15 @@ const Window: React.FC<WindowComponentProps> = function () {
   }
 
   async function handleDrillStart(activityID: string, planID: string) {
+    setMod('run-drill');
   }
 
-  async function handleShowDrillPlan(activityID: string, planID: string) {
+  async function handleShowDrillHistory(activityID: string, planID: string) {
+    setMod('show-history');
+  }
+
+  async function handleEditDrillPlan(activityID: string, planID: string) {
+    setMod('edit-plan');
   }
 
   async function handleNodeClick(node: ITreeNode, nodePath: number[]) {
@@ -145,6 +158,21 @@ const Window: React.FC<WindowComponentProps> = function () {
       }
       selectNode(nodePath);
     }
+  }
+
+  let mainPane: JSX.Element;
+  if (selectedPlanID !== null) {
+    if (mod === 'run-drill') {
+      mainPane = <RunDrill planID={selectedPlanID} />;
+    } else if (mod === 'show-history') {
+      mainPane = <DrillHistory planID={selectedPlanID} />;
+    } else if (mod === 'edit-plan') {
+      mainPane = <EditDrillPlan planID={selectedPlanID} />;
+    } else {
+      throw new Error("Unknown BC plan module");
+    }
+  } else {
+    mainPane = <NonIdealState title="No BC plan selected" />;
   }
 
 
@@ -176,10 +204,8 @@ const Window: React.FC<WindowComponentProps> = function () {
         </div>
       </div>
 
-      <div className={styles.drillPlan}>
-        {selectedPlanID !== null
-          ? <EditDrillPlan planID={selectedPlanID} />
-          : <NonIdealState title="No BC plan selected" />}
+      <div className={styles.mainPane}>
+        {mainPane}
       </div>
 
     </div>
@@ -197,8 +223,11 @@ function buildAcitvityNodes(
 
     onUpdateActivity: (activity: BCActivity) => void,
     onUpdatePlan: (plan: BCPlan) => void,
-    onShowDrillPlan: (activityID: string, planID: string) => void,
+
+    mod: Module,
+    onShowDrillReports: (activityID: string, planID: string) => void,
     onDrillStart: (activityID: string, planID: string) => void,
+    onReviseDrillPlan: (activityID: string, planID: string) => void,
   ): ITreeNode[] {
 
   const orderedActivities = [
@@ -318,7 +347,27 @@ function buildAcitvityNodes(
                           intent="danger"
                           small
                           minimal
+                          active={isSelected && mod === 'run-drill'}
+                          title="Start drill…"
                           icon="record"
+                        />
+                      <Button
+                          key="view-reports"
+                          onClick={() => onShowDrillReports(activity.id, plan.id)}
+                          small
+                          minimal
+                          active={isSelected && mod === 'show-history'}
+                          title="View past drill reports…"
+                          icon="history"
+                        />
+                      <Button
+                          key="edit-plan"
+                          onClick={() => onReviseDrillPlan(activity.id, plan.id)}
+                          small
+                          minimal
+                          active={isSelected && mod === 'edit-plan'}
+                          title="Edit drill plan…"
+                          icon="edit"
                         />
                       <Popover
                           position={Position.RIGHT}
@@ -343,3 +392,5 @@ function buildAcitvityNodes(
 
 
 export default Window;
+
+type Module = 'show-history' | 'run-drill' | 'edit-plan';

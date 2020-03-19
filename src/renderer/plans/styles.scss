@@ -10,7 +10,7 @@
   .sidebar {
     flex-shrink: 0;
     flex-grow: 0;
-    width: 20em;
+    width: 22rem;
     display: flex;
     flex-flow: column nowrap;
     background: $pt-app-background-color;
@@ -33,7 +33,7 @@
     }
   }
 
-  .drillPlan {
+  .mainPane {
     flex: 1;
     box-shadow: $pt-elevation-shadow-1;
     display: flex;
@@ -57,7 +57,7 @@
   }
 }
 
-:local .drillPlanBase {
+:local .mainPaneInner {
   flex: 1;
   display: flex;
   flex-flow: column nowrap;
@@ -67,7 +67,7 @@
     flex: 1;
   }
 
-  .actions {
+  .toolbar {
     flex-shrink: 0;
     padding: $pt-grid-size ($pt-grid-size * 4);
 
@@ -125,6 +125,45 @@
       &::placeholder {
         font-weight: normal;
       }
+    }
+  }
+}
+
+
+:local .drillReportForm {
+  display: flex;
+  flex-flow: column nowrap;
+  padding: $pt-grid-size * 2;
+  overflow-y: auto;
+
+  .planIntro {
+    margin-bottom: $pt-grid-size * 2;
+  }
+
+  .planIntro,
+  .stepParticipantsGeneral,
+  .stepActivity,
+  .stepPlan {
+    display: flex;
+    flex-flow: row nowrap;
+
+    > * {
+      flex: 1;
+      margin-right: $pt-grid-size;
+    }
+  }
+
+  .stepPlan {
+    align-items: flex-end;
+  }
+
+  .stepTimer {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+
+    > :first-child {
+      margin-right: $pt-grid-size;
     }
   }
 }

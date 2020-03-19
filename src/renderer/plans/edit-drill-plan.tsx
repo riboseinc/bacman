@@ -232,8 +232,8 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
   }
 
   return (
-    <div className={styles.drillPlanBase}>
-      <div className={styles.actions}>
+    <div className={styles.mainPaneInner}>
+      <div className={styles.toolbar}>
         <span className={styles.title}>
           BC drill plan: {revision.revisionID < 1
             ? <>initial revision</>
@@ -250,6 +250,7 @@ export const EditDrillPlan: React.FC<EditDrillPlanProps> = function ({ planID })
             large
             onClick={commitInProgress ? undefined : () => commitChanges()}
             active={commitInProgress}
+            icon="git-commit"
             disabled={
               (selectedRevisionID !== null && !isLatestRevision) ||
               sanitizedPlanRevision === undefined ||
