@@ -16,7 +16,6 @@ import { app } from 'renderer';
 import styles from './styles.scss';
 import { EditDrillPlan } from './edit-drill-plan';
 import { RunDrill } from './run-drill';
-import { DrillHistory } from './drill-history';
 
 
 interface RetireableQuery {
