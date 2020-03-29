@@ -382,7 +382,7 @@ const DrillReportForm: React.FC<DrillReportFormProps> = function ({
         )}
       </div>
 
-      <Callout intent="primary">
+      <Callout intent="success">
         <H4>Conclusion</H4>
         <div className={styles.reportFollowUp}>
           <FormGroup label="Follow-up action:" labelFor="follow-up">
