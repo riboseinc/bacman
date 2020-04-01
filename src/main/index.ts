@@ -10,7 +10,7 @@ import { default as BackendCls } from 'coulomb/db/isogit-yaml/main/base';
 import { default as ModelManagerCls } from 'coulomb/db/isogit-yaml/main/manager';
 
 import { conf as appConf } from '../app';
-import { BCActivity, BCPlan, BCDrill, BCDrillParticipant } from '../models';
+import { Plan, BCDrill, BCDrillParticipant } from '../models';
 
 const appDataPath = electronApp.getPath('userData');
 
@@ -36,21 +36,13 @@ export const conf: MainConfig<typeof appConf> = {
   },
 
   managers: {
-    activity: {
-      dbName: 'default',
-      options: {
-        cls: ModelManagerCls,
-        workDir: 'activities',
-        idField: 'id',
-      } as ManagerOptions<BCActivity>,
-    },
     plan: {
       dbName: 'default',
       options: {
         cls: ModelManagerCls,
         workDir: 'plans',
         idField: 'id',
-      } as ManagerOptions<BCPlan>,
+      } as ManagerOptions<Plan>,
     },
     drill: {
       dbName: 'default',

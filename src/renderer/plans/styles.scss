@@ -14,6 +14,7 @@
     display: flex;
     flex-flow: column nowrap;
     background: $pt-app-background-color;
+    box-shadow: $pt-elevation-shadow-1;
 
     .objects {
       flex: 1;
@@ -41,19 +42,21 @@
   }
 }
 
-:global .bp3-editable-text-editing {
-  &::before {
-    background: transparent !important;
+:global .bp3-tree-node-selected {
+  .bp3-editable-text-editing {
+    &::before {
+      background: transparent !important;
+    }
+    .bp3-editable-text-input::placeholder {
+      color: white;
+      opacity: .5;
+    }
   }
-  .bp3-editable-text-input::placeholder {
-    color: white;
-    opacity: .5;
-  }
-}
-:global .bp3-editable-text-placeholder {
-  .bp3-editable-text-content {
-    color: white;
-    opacity: .5;
+  .bp3-editable-text-placeholder {
+    .bp3-editable-text-content {
+      color: white;
+      opacity: .5;
+    }
   }
 }
 

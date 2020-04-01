@@ -3,19 +3,24 @@ import React, { useState, useEffect, useMemo } from 'react';
 import slugify from 'slugify';
 
 import {
-  Menu, Tree, ITreeNode, EditableText, Text, Button, Popover, Position,
-  ButtonGroup, NonIdealState, Divider } from '@blueprintjs/core';
+  Tree, ITreeNode, Button,
+  Divider,
+  NonIdealState,
+} from '@blueprintjs/core';
+
 import { WindowComponentProps } from 'coulomb/config/renderer';
 import { callIPC } from 'coulomb/ipc/renderer';
 import { DatabaseList } from 'coulomb/db/renderer/status';
 
 import { conf as appConf } from 'app';
-import { BCActivity, BCPlan } from 'models';
+import { Plan, makeBlankPlanRevision } from 'models';
 import { conf as rendererConf } from 'renderer';
 import { app } from 'renderer';
+
+import { PlanDetails } from './plan-details';
+import { buildPlanNodes } from './plan-list';
+import { NEW_ID_PLACEHOLDER } from './utils';
 import styles from './styles.scss';
-import { EditDrillPlan } from './edit-drill-plan';
-import { RunDrill } from './run-drill';
 
 
 interface RetireableQuery {
@@ -23,17 +28,10 @@ interface RetireableQuery {
 }
 
 
-const NEW_ID_PLACEHOLDER = '__new';
-const NEW_TEXT_PLACEHOLDER = "Add";
-
-
 const Window: React.FC<WindowComponentProps> = function () {
   const [showRetired, setShowRetired] = useState(false);
 
-  const activities = app.useMany<BCActivity, { query: RetireableQuery }>
-    ('activity', { query: { showRetired }});
-
-  const plans = app.useMany<BCPlan, { query: RetireableQuery }>
+  const plans = app.useMany<Plan, { query: RetireableQuery }>
     ('plan', { query: { showRetired }});
 
   const [selectedNode, selectNode] = useState<number[]>([]);
@@ -44,24 +42,31 @@ const Window: React.FC<WindowComponentProps> = function () {
 
   const [selectedPlanID, selectPlanID] = useState<string | null>(null);
 
-  useEffect(() => {
-    updateNodes(buildAcitvityNodes(
-      activities.objects,
-      plans.objects,
-      selectedNode,
-      editMode,
-      () => setEditMode(false),
-      handleActivityUpdate,
-      handlePlanUpdate,
+  const planNames = JSON.stringify(Object.values(plans.objects).map(p => p.name)); 
 
-      mod,
-      handleDrillStart,
-      handleEditDrillPlan));
+  useEffect(() => {
+    updateNodes([{
+      id: 'plans',
+      label: "Plans",
+      icon: "folder-open",
+      isExpanded: true,
+      childNodes: buildPlanNodes(
+        plans.objects,
+        selectedNode,
+        editMode,
+        () => setEditMode(false),
+        handlePlanUpdate),
+    }]);
   }, [
-    JSON.stringify(activities.objects),
-    JSON.stringify(plans.objects),
+    planNames,
     JSON.stringify(selectedNode),
     editMode,
+  ]);
+
+  useEffect(() => {
+    selectNode([]);
+  }, [
+    planNames,
   ]);
 
   useEffect(() => {
@@ -74,66 +79,46 @@ const Window: React.FC<WindowComponentProps> = function () {
       databaseStatusComponents={rendererConf.databaseStatusComponents} />
   ), Object.keys(appConf.databases));
 
-  const [mod, setMod] = useState<Module>('edit-plan');
+  const plan = Object.values(plans.objects).find(p => p.id === selectedPlanID);
 
+  async function handlePlanRevision(plan: Plan, fromRevisionIdx: number) {
+    const currentRevision = plan.revisions[fromRevisionIdx];
 
-  async function handleActivityUpdate(activity: BCActivity) {
-    if (activity.id === NEW_ID_PLACEHOLDER) {
-      if (activity.description === NEW_TEXT_PLACEHOLDER || activity.description.trim() === '') {
-        return;
-      }
-
-      const id = slugify(activity.description, { lower: true, strict: true });
-      const newActivity = { ...activity, id };
-      await callIPC<{ object: BCActivity, commit: boolean }, { success: true }>
-      ('model-activity-create-one', {
-        object: newActivity,
-        commit: true,
-      });
-
-    } else {
-      await callIPC<{ objectID: string, object: BCActivity, commit: boolean }, { success: true }>
-      ('model-activity-update-one', {
-        objectID: activity.id,
-        object: activity,
-        commit: true,
-      });
+    if (currentRevision === undefined) {
+      throw new Error(`Cannot create new revision from non-existent revision: ${fromRevisionIdx}`)
     }
+
+    const newRevision = { ...currentRevision, timeCreated: new Date() };
+    plan.revisions = [ newRevision, ...(plan.revisions || []) ];
+    return await handlePlanUpdate(plan);
   }
 
-  async function handlePlanUpdate(plan: BCPlan) {
+  async function handlePlanUpdate(plan: Plan) {
     if (plan.id === NEW_ID_PLACEHOLDER) {
-      if (plan.purpose === NEW_TEXT_PLACEHOLDER || plan.purpose.trim() === '') {
+      if (plan.name.trim() === '') {
         return;
       }
+
+      selectNode([]);
 
       const newPlan = {
         ...plan,
-        id: slugify(plan.purpose, { strict: true, lower: true }),
+        id: slugify(plan.name, { strict: true, lower: true }),
       };
-      await callIPC<{ object: BCPlan, commit: boolean }, { success: true }>
+      await callIPC<{ object: Plan, commit: boolean }, { success: true }>
       ('model-plan-create-one', {
-        object: newPlan,
+        object: { ...newPlan, revisions: [makeBlankPlanRevision()] },
         commit: true,
       });
-      selectNode([]);
 
     } else {
-      await callIPC<{ objectID: string, object: BCPlan, commit: boolean }, { success: true }>
+      await callIPC<{ objectID: string, object: Plan, commit: boolean }, { success: true }>
       ('model-plan-update-one', {
         objectID: plan.id,
         object: plan,
         commit: true,
       });
     }
-  }
-
-  async function handleDrillStart(activityID: string, planID: string) {
-    setMod('run-drill');
-  }
-
-  async function handleEditDrillPlan(activityID: string, planID: string) {
-    setMod('edit-plan');
   }
 
   async function handleNodeClick(node: ITreeNode, nodePath: number[]) {
@@ -154,26 +139,15 @@ const Window: React.FC<WindowComponentProps> = function () {
     }
   }
 
-  let mainPane: JSX.Element;
-  if (selectedPlanID !== null) {
-    if (mod === 'run-drill') {
-      mainPane = <RunDrill planID={selectedPlanID} />;
-    } else if (mod === 'edit-plan') {
-      mainPane = <EditDrillPlan planID={selectedPlanID} />;
-    } else {
-      throw new Error("Unknown BC plan module");
-    }
-  } else {
-    mainPane = <NonIdealState title="No BC plan selected" />;
-  }
-
-
   return (
     <div className={styles.base}>
 
       <div className={styles.sidebar}>
         <div className={styles.objects}>
-          <Tree className={styles.objectTree} onNodeClick={handleNodeClick} contents={nodes} />
+          <Tree
+            className={styles.objectTree}
+            onNodeClick={handleNodeClick}
+            contents={nodes} />
 
           <div className={styles.listActions}>
             <Button
@@ -196,183 +170,17 @@ const Window: React.FC<WindowComponentProps> = function () {
         </div>
       </div>
 
-      <div className={styles.mainPane}>
-        {mainPane}
-      </div>
+      {plan
+        ? <PlanDetails
+            plan={plan}
+            onUpdate={handlePlanUpdate}
+            onNewRevision={handlePlanRevision}
+          />
+        : <NonIdealState title="No plan selected" />}
 
     </div>
   );
 };
 
 
-function buildAcitvityNodes(
-    activities: { [id: string]: BCActivity },
-    plans: { [id: string]: BCPlan },
-
-    selectedNodePath: number[],
-    editMode: boolean,
-    exitEditMode: () => void,
-
-    onUpdateActivity: (activity: BCActivity) => void,
-    onUpdatePlan: (plan: BCPlan) => void,
-
-    mod: Module,
-    onDrillStart: (activityID: string, planID: string) => void,
-    onReviseDrillPlan: (activityID: string, planID: string) => void,
-  ): ITreeNode[] {
-
-  const orderedActivities = [
-    ...Object.values(activities).sort((a, b) => a.id.localeCompare(b.id)),
-    {
-      id: NEW_ID_PLACEHOLDER,
-      description: "Add activity",
-    } as BCActivity,
-  ];
-
-  const orderedPlans = Object.values(plans).sort((a, b) => {
-    return a.purpose.localeCompare(b.purpose);
-  });
-
-  function getPlansForActivity(activityID: string) {
-    return [
-      ...orderedPlans.filter(plan => plan.activityID === activityID),
-      {
-        id: NEW_ID_PLACEHOLDER,
-        purpose: "Add continuity plan",
-        activityID,
-      } as BCPlan,
-    ];
-  }
-
-  function activityIsSelected(idx: number) {
-    return (
-      selectedNodePath.length === 1 &&
-      selectedNodePath[0] === idx);
-  }
-  function activityIsBeingEdited(idx: number) {
-    return activityIsSelected(idx) && editMode === true;
-  }
-
-  function planIsSelected(activityIdx: number, idx: number) {
-    return (
-      selectedNodePath.length === 2 &&
-      selectedNodePath[0] === activityIdx &&
-      selectedNodePath[1] === idx);
-  }
-  function planIsBeingEdited(activityIdx: number, idx: number) {
-    return planIsSelected(activityIdx, idx) && editMode === true;
-  }
-
-  return (
-    [ ...orderedActivities.entries() ].
-    map(([activityIdx, activity]: [number, BCActivity]) => {
-      const isSelected = activityIsSelected(activityIdx);
-      const isBeingEdited = activityIsBeingEdited(activityIdx);
-      const isPlaceholder = activity.id === NEW_ID_PLACEHOLDER;
-      const plans = getPlansForActivity(activity.id);
-      return {
-        id: activity.id,
-        isSelected,
-        hasCaret: !isPlaceholder && plans.length > 0,
-        isExpanded: true,
-        icon: isPlaceholder ? 'add' : 'pulse',
-        label: isBeingEdited
-          ? <EditableText
-              isEditing={true}
-              defaultValue={isPlaceholder ? '' : activity.description}
-              placeholder="New activity description…"
-              onConfirm={description => { exitEditMode(); onUpdateActivity({ ...activity, description }) }}
-              onCancel={() => exitEditMode()}
-              confirmOnEnterKey={true}
-              selectAllOnFocus={true}
-            />
-          : <Text ellipsize={true}>{activity.description}</Text>,
-        secondaryLabel: !isPlaceholder
-          ? <>
-              <Popover
-                  position={Position.RIGHT}
-                  content={<Menu>
-                    <Menu.Item
-                      text="Retire"
-                      disabled
-                      icon="archive"
-                      onClick={() => onUpdateActivity({ ...activity, retired: true })} />
-                  </Menu>}>
-                <Button minimal icon="more" small />
-              </Popover>
-              </>
-          : undefined,
-
-        childNodes: !isPlaceholder
-          ? [...plans.entries()].
-            map(([planIdx, plan]: [number, BCPlan]) => {
-              const isSelected = planIsSelected(activityIdx, planIdx);
-              const isBeingEdited = planIsBeingEdited(activityIdx, planIdx);
-              const isPlaceholder = plan.id === NEW_ID_PLACEHOLDER;
-              return {
-                id: plan.id,
-                isSelected,
-                hasCaret: false,
-                icon: isPlaceholder ? 'add' : 'clipboard',
-                nodeData: {
-                  bcActivityID: activity.id,
-                  bcPlanID: plan.id,
-                },
-                label: isBeingEdited
-                  ? <EditableText
-                      isEditing={isBeingEdited}
-                      defaultValue={isPlaceholder ? '' : plan.purpose}
-                      placeholder="New BC plan purpose…"
-                      onConfirm={purpose => { exitEditMode(); onUpdatePlan({ ...plan, purpose }) }}
-                      onCancel={() => exitEditMode()}
-                      confirmOnEnterKey={true}
-                      selectAllOnFocus={true}
-                    />
-                  : <Text ellipsize={true}>{plan.purpose}</Text>,
-                secondaryLabel: !isPlaceholder
-                  ? <ButtonGroup>
-                      <Button
-                          key="start-drill"
-                          onClick={() => onDrillStart(activity.id, plan.id)}
-                          disabled={(plan.drillPlan || []).length < 1}
-                          intent="danger"
-                          small
-                          minimal
-                          active={isSelected && mod === 'run-drill'}
-                          title="Start drill…"
-                          icon="record"
-                        />
-                      <Button
-                          key="edit-plan"
-                          onClick={() => onReviseDrillPlan(activity.id, plan.id)}
-                          small
-                          minimal
-                          active={isSelected && mod === 'edit-plan'}
-                          title="Edit drill plan…"
-                          icon="edit"
-                        />
-                      <Popover
-                          position={Position.RIGHT}
-                          content={<Menu>
-                            <Menu.Item
-                              text="Retire"
-                              disabled
-                              icon="archive"
-                              onClick={() => onUpdatePlan({ ...plan, retired: true })} />
-                          </Menu>}>
-                        <Button minimal icon="more" small />
-                      </Popover>
-                    </ButtonGroup>
-                  : undefined,
-              };
-            })
-          : undefined,
-      };
-    })
-  );
-}
-
-
 export default Window;
-
-type Module = 'run-drill' | 'edit-plan';
