@@ -13,7 +13,7 @@ the BCMS standard https://www.iso.org/standard/75106.html[ISO 22301:2019].
 
 Bacman lets you manage:
 
-* Business continuity plans
+* Business continuity plans and procedures
 * Business continuity drills
 * Business continuity drill records
 
