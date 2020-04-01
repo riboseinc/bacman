@@ -1,7 +1,7 @@
 import moment from 'moment';
 import React from 'react';
 import { PlanRevision } from 'models';
-import { Button, Tree, ITreeNode, IconName, Tag } from '@blueprintjs/core';
+import { Button, Tree, ITreeNode, IconName } from '@blueprintjs/core';
 import styles from './plan-details.scss';
 
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PlannedProcedure, ProcedureStep } from 'models';
-import { H3, FormGroup, Button, EditableText, UL } from '@blueprintjs/core';
+import { H3, EditableText, UL } from '@blueprintjs/core';
 import styles from './plan-details.scss';
 
 
