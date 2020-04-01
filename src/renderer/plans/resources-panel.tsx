@@ -82,7 +82,6 @@ function ({ resources, onUpdate }) {
           value={r.type}
           disabled={!onUpdate}
           onChange={(evt) => {
-            console.debug(evt.currentTarget.value, r.description.trim());
             handleEdit(
               idx,
               { type: evt.currentTarget.value as ResourceType },
