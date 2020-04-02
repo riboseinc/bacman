@@ -58,7 +58,6 @@ function MaximizablePanel<ContentProps>(props: PropsWithChildren<PanelConfig<Con
               onClose={props.onMinimize}
               isOpen={props.isMaximized}
               enforceFocus={false}
-              usePortal
               portalClassName={styles.maximizedPanelOverlay}
               backdropClassName={styles.maximizedPanelBackdrop}
               portalContainer={panelRef.current}>
