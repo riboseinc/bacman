@@ -6,6 +6,7 @@
   height: 100vh;
   flex-flow: row nowrap;
   overflow: hidden;
+  background: $pt-divider-black;
 
   .sidebar {
     flex-shrink: 0;
