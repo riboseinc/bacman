@@ -7,6 +7,15 @@
   right: $pt-grid-size;
 }
 
+:local .localizedOverlay {
+  position: unset;
+}
+
+:local .localizedOverlayBackdrop {
+  position: absolute;
+  background-color: rgba($pt-app-background-color, 0.7);
+}
+
 
 :local .panel {
   border-radius: $pt-border-radius;
@@ -26,11 +35,8 @@
   .maximizablePanelContents {
     position: relative;
   }
-  .maximizedPanelOverlay {
-    position: unset;
-  }
-  .maximizedPanelBackdrop {
-    position: absolute;
+
+  :local .localizedOverlayBackdrop {
     background-color: rgba($light-gray3, 0.7);
   }
   .maximizedPanelNotice {
