@@ -1,5 +1,5 @@
 import React, { useState, PropsWithChildren, useEffect, useRef } from 'react';
-import { NonIdealState, Button, Overlay, Spinner } from '@blueprintjs/core';
+import { NonIdealState, Button, Overlay } from '@blueprintjs/core';
 import { Panel, PanelProps } from 'coulomb-panel/panel';
 import { Plan, PlannedProcedure, PlanRevision, CriteriaGroup, Role, Resource } from 'models';
 import { PlanSummary } from './plan-summary';
@@ -223,7 +223,7 @@ function ({ plan, onUpdate, onNewRevision }) {
           portalClassName={styles.localizedOverlay}
           backdropClassName={styles.localizedOverlayBackdrop}
           isOpen={baseRef.current !== null && !ready}>
-        <Spinner />
+          <div></div>
       </Overlay>
 
       {ready
