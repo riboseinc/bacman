@@ -17,8 +17,6 @@ function ({ plan, revision, onPlanUpdate, onRevisionUpdate, collapsed }) {
   const [purpose, setPurpose] = useState<string | undefined>(plan.purpose);
   const [scope, setScope] = useState<string | undefined>(revision.scope);
 
-  const [ready, setReady] = useState(false);
-
   useEffect(() => {
     setName(plan.name);
     setPurpose(plan.purpose);
