@@ -34,13 +34,6 @@
       padding: ($pt-grid-size / 2) $pt-grid-size 0 $pt-grid-size;
     }
   }
-
-  .mainPane {
-    flex: 1;
-    box-shadow: $pt-elevation-shadow-1;
-    display: flex;
-    flex-flow: column nowrap;
-  }
 }
 
 :global .bp3-tree-node-selected {
