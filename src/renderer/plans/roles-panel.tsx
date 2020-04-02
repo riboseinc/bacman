@@ -65,7 +65,9 @@ function ({ roles, onUpdate }) {
   const nodes: ITreeNode[] = [ ..._roles.entries() ].map(([idx, r]): ITreeNode => {
     return {
       id: `role-${idx}`,
-      label: <div className={styles.roleRow}>
+      label: <div
+          className={styles.roleRow}
+          title={`${r.role}: ${r.responsibility || '(responsibility unspecified)'}`}>
         <EditableText
           value={r.role}
           placeholder="New role…"
