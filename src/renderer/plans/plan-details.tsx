@@ -1,7 +1,8 @@
 import React, { useState, PropsWithChildren, useEffect, useRef } from 'react';
-import { NonIdealState, H2, Button, EditableText, Text, Classes, Overlay } from '@blueprintjs/core';
+import { NonIdealState, Button, Overlay, Spinner } from '@blueprintjs/core';
 import { Panel, PanelProps } from 'coulomb-panel/panel';
 import { Plan, PlannedProcedure, PlanRevision, CriteriaGroup, Role, Resource } from 'models';
+import { PlanSummary } from './plan-summary';
 import { ProcedureDetails } from './procedure-details';
 import { PlanRevisions } from './plan-revisions';
 import styles from './plan-details.scss';
@@ -83,9 +84,21 @@ function ({ plan, onUpdate, onNewRevision }) {
   const [maximizedPanelTitle, setMaximizedPanelTitle] = useState<string | null>(null);
   const [selectedRevisionIdx, selectRevisionIdx] = useState<number>(0);
 
+  const [ready, setReady] = useState(false);
+
   useEffect(() => {
     selectProcedureIdx(null);
   }, [plan.id]);
+
+  useEffect(() => {
+    setReady(false);
+    // Workaround EditableText not recalculating height
+    // when switching between plans
+
+    setImmediate(() => {
+      setReady(true);
+    });
+  }, [plan.id, selectedRevisionIdx]);
 
   useEffect(() => {
     selectRevisionIdx(0);
@@ -94,6 +107,8 @@ function ({ plan, onUpdate, onNewRevision }) {
   useEffect(() => {
     minimizePanel();
   }, [selectedProcedureIdx]);
+
+  const baseRef = useRef<HTMLDivElement>(null);
 
   if (plan === null) {
     return <NonIdealState title="No plan is selected" />;
@@ -200,86 +215,99 @@ function ({ plan, onUpdate, onNewRevision }) {
   const planSummaryCollapsed = selectedProcedureIdx !== null || maximizedPanel !== null;
 
   return (
-    <div className={styles.base}>
+    <div ref={baseRef} className={styles.base}>
+      <Overlay
+          enforceFocus={false}
+          autoFocus={false}
+          portalContainer={baseRef.current || undefined}
+          portalClassName={styles.localizedOverlay}
+          backdropClassName={styles.localizedOverlayBackdrop}
+          isOpen={baseRef.current !== null && !ready}>
+        <Spinner />
+      </Overlay>
 
-      <div className={styles.mainView}>
-        <PlanSummary
-          plan={plan}
-          revision={revision}
-          onPlanUpdate={onUpdate}
-          onRevisionUpdate={isLatestRevision ? onUpdateRevision : undefined}
-          collapsed={planSummaryCollapsed} />
+      {ready
+        ? <>
+          <div className={styles.mainView}>
+            <PlanSummary
+              plan={plan}
+              revision={revision}
+              onPlanUpdate={onUpdate}
+              onRevisionUpdate={isLatestRevision ? onUpdateRevision : undefined}
+              collapsed={planSummaryCollapsed} />
 
-        {!planSummaryCollapsed
-          ? <PlanRevisions
-              revisions={plan.revisions}
-              selectedIdx={selectedRevisionIdx}
-              onSelect={selectRevisionIdx}
-              onCreate={() => onNewRevision(plan, selectedRevisionIdx)}
-            />
-          : null}
+            {!planSummaryCollapsed
+              ? <PlanRevisions
+                  revisions={plan.revisions}
+                  selectedIdx={selectedRevisionIdx}
+                  onSelect={selectRevisionIdx}
+                  onCreate={() => onNewRevision(plan, selectedRevisionIdx)}
+                />
+              : null}
 
-        {selectedProcedurePanel
-          ? <div className={`${styles.selectedProcedure} ${maximizedPanel !== null ? styles.sheetCollapsed : ''}`}>
-              <CloseSheetButton onClose={() => selectProcedureIdx(null)} />
-              {selectedProcedurePanel}
-            </div>
-          : null}
+            {selectedProcedurePanel
+              ? <div className={`${styles.selectedProcedure} ${maximizedPanel !== null ? styles.sheetCollapsed : ''}`}>
+                  <CloseSheetButton onClose={() => selectProcedureIdx(null)} />
+                  {selectedProcedurePanel}
+                </div>
+              : null}
 
-        {maximizedPanel
-          ? <div className={styles.maximizedPanel }>
-              <MaximizedPanel onMinimize={minimizePanel}>
-                {maximizedPanel}
-              </MaximizedPanel>
-            </div>
-          : null}
-      </div>
+            {maximizedPanel
+              ? <div className={styles.maximizedPanel }>
+                  <MaximizedPanel onMinimize={minimizePanel}>
+                    {maximizedPanel}
+                  </MaximizedPanel>
+                </div>
+              : null}
+          </div>
 
-      <div className={styles.panelSidebar}>
-        <Panel title="Procedures"
-            className={styles.panel}
-            TitleComponentSecondary={procedures.PanelActions}>
-          <panels.procedures.Compact
-            procedures={revision.procedures || []}
-            onSelect={selectProcedureIdx}
-            selectedIdx={selectedProcedureIdx !== null ? selectedProcedureIdx : undefined}
-            onAdd={isLatestRevision ? handleAddProcedure : undefined}
-            onDelete={isLatestRevision ? handleDeleteProcedure : undefined}
-          />
-        </Panel>
+          <div className={styles.panelSidebar}>
+            <Panel title="Procedures"
+                className={styles.panel}
+                TitleComponentSecondary={procedures.PanelActions}>
+              <panels.procedures.Compact
+                procedures={revision.procedures || []}
+                onSelect={selectProcedureIdx}
+                selectedIdx={selectedProcedureIdx !== null ? selectedProcedureIdx : undefined}
+                onAdd={isLatestRevision ? handleAddProcedure : undefined}
+                onDelete={isLatestRevision ? handleDeleteProcedure : undefined}
+              />
+            </Panel>
 
-        <MaximizablePanel
-          Compact={panels.criteria.Compact}
-          Maximized={panels.criteria.Full}
-          onMinimize={minimizePanel}
-          isCollapsible
-          props={{
-            impliedCriteria: selectedProcedure ? revision.activationCriteria : undefined,
-            criteria: selectedProcedure ? selectedProcedure.activationCriteria : revision.activationCriteria,
-            onUpdate: isLatestRevision ? handleUpdateCriteria : undefined,
-          }}
-          {...panelProps(`${selectedProcedure ? 'Procedure' : 'Plan'} activation criteria`)} />
+            <MaximizablePanel
+              Compact={panels.criteria.Compact}
+              Maximized={panels.criteria.Full}
+              onMinimize={minimizePanel}
+              isCollapsible
+              props={{
+                impliedCriteria: selectedProcedure ? revision.activationCriteria : undefined,
+                criteria: selectedProcedure ? selectedProcedure.activationCriteria : revision.activationCriteria,
+                onUpdate: isLatestRevision ? handleUpdateCriteria : undefined,
+              }}
+              {...panelProps(`${selectedProcedure ? 'Procedure' : 'Plan'} activation criteria`)} />
 
-        <MaximizablePanel
-          Compact={panels.roles.Compact}
-          Maximized={panels.roles.Full}
-          onMinimize={minimizePanel}
-          props={{
-            roles: (selectedProcedure ? selectedProcedure.roles : revision.roles) || [],
-            onUpdate: isLatestRevision ? handleUpdateRoles : undefined,
-          }}
-          {...panelProps(`${selectedProcedure ? 'Procedure' : 'Plan'} roles`)} />
+            <MaximizablePanel
+              Compact={panels.roles.Compact}
+              Maximized={panels.roles.Full}
+              onMinimize={minimizePanel}
+              props={{
+                roles: (selectedProcedure ? selectedProcedure.roles : revision.roles) || [],
+                onUpdate: isLatestRevision ? handleUpdateRoles : undefined,
+              }}
+              {...panelProps(`${selectedProcedure ? 'Procedure' : 'Plan'} roles`)} />
 
-        <MaximizablePanel
-          Compact={panels.resources.Compact}
-          Maximized={panels.resources.Full}
-          onMinimize={minimizePanel}
-          props={{
-            resources: (selectedProcedure ? selectedProcedure.requiredResources : revision.requiredResources) || [],
-            onUpdate: isLatestRevision ? handleUpdateResources : undefined,
-          }}
-          {...panelProps(`Required resources for the ${selectedProcedure ? 'procedure' : 'plan'}`)} />
-      </div>
+            <MaximizablePanel
+              Compact={panels.resources.Compact}
+              Maximized={panels.resources.Full}
+              onMinimize={minimizePanel}
+              props={{
+                resources: (selectedProcedure ? selectedProcedure.requiredResources : revision.requiredResources) || [],
+                onUpdate: isLatestRevision ? handleUpdateResources : undefined,
+              }}
+              {...panelProps(`Required resources for the ${selectedProcedure ? 'procedure' : 'plan'}`)} />
+          </div>
+          </>
+        : null}
     </div>
   );
 };
@@ -318,85 +346,4 @@ const MaximizeButton: React.FC<MaximizeButtonProps> = function ({ isMaximized, o
     active={isMaximized}
     onClick={(evt: React.FormEvent) => { evt.stopPropagation(); onToggle(); }}
   />;
-};
-
-
-interface PlanSummaryProps {
-  plan: Plan
-  revision: PlanRevision
-  onPlanUpdate: (plan: Plan) => void
-  onRevisionUpdate?: (revision: PlanRevision) => void
-  collapsed: boolean 
-}
-const PlanSummary: React.FC<PlanSummaryProps> =
-function ({ plan, revision, onPlanUpdate, onRevisionUpdate, collapsed }) {
-  const [name, setName] = useState<string>(plan.name);
-  const [purpose, setPurpose] = useState<string | undefined>(plan.purpose);
-  const [scope, setScope] = useState<string | undefined>(revision.scope);
-
-  const [ready, setReady] = useState(false);
-  // Workaround EditableText not recalculating height
-  // when switching between plans
-
-  useEffect(() => {
-    setReady(false);
-
-    setName(plan.name);
-    setPurpose(plan.purpose);
-    setScope(revision.scope);
-
-    setImmediate(() => setReady(true));
-  }, [plan.id, JSON.stringify(revision)]);
-
-  return (
-    <div className={`${styles.planSummary} ${collapsed ? styles.sheetCollapsed : ''}`}>
-      <H2>
-        {collapsed
-          ? <Text>{plan.name}</Text>
-          : <EditableText
-              confirmOnEnterKey
-              selectAllOnFocus
-              value={name}
-              onChange={setName}
-              onConfirm={(val) => onPlanUpdate({ ...plan, name: val.trim() })}
-            />}
-      </H2>
-
-      <Text className={styles.planID} ellipsize>
-        {plan.id}
-      </Text>
-
-      {!collapsed && ready
-        ? <>
-            <div title="Plan purpose" className={`${Classes.RUNNING_TEXT} ${styles.planPurpose}`}>
-              <EditableText
-                multiline
-                minLines={2}
-                maxLines={7}
-                selectAllOnFocus
-                value={purpose}
-                placeholder="Enter plan purpose…"
-                onChange={setPurpose}
-                onConfirm={(val) => onPlanUpdate({ ...plan, purpose: val.trim() })}
-              />
-            </div>
-            <div title="Plan scope" className={`${Classes.RUNNING_TEXT} ${styles.planScope}`}>
-              <EditableText
-                multiline
-                minLines={2}
-                maxLines={7}
-                selectAllOnFocus
-                value={scope}
-                placeholder="Enter plan scope…"
-                onChange={setScope}
-                disabled={!onRevisionUpdate}
-                onConfirm={(val) => onRevisionUpdate
-                  ? onRevisionUpdate({ ...revision, scope: val.trim() })
-                  : undefined}
-              />
-            </div>
-          </>
-        : null}
-    </div>
-  );
 };

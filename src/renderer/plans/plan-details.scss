@@ -43,6 +43,8 @@
 
 
 :local .base {
+  position: relative;
+
   flex: 1;
   display: flex;
   flex-flow: row nowrap;
@@ -56,6 +58,7 @@
     flex: 1;
     display: flex;
     flex-flow: column nowrap;
+    overflow: hidden;
 
     .planSummary,
     .selectedProcedure,
@@ -80,24 +83,44 @@
     }
 
     .planSummary {
-      flex: 1;
+      display: flex;
+      flex-flow: column nowrap;
+      overflow: hidden;
 
       .planID {
         font-size: $pt-font-size-small;
         margin-bottom: $pt-grid-size;
         color: $pt-text-color-muted;
+        flex-shrink: 0;
       }
 
       .planScope, .planPurpose {
-        font-size: $pt-font-size-large;
+        flex: .5;
+        flex-shrink: 0;
+        min-height: 10vh;
+        display: flex;
+        flex-flow: column nowrap;
+
+        :global .bp3-editable-text {
+          flex: 1;
+          overflow: hidden;
+          display: flex;
+          flex-flow: column nowrap;
+
+          .bp3-editable-text-content {
+            flex: 1;
+          }
+        }
+
         &:before {
           color: $pt-text-color-muted;
           display: block;
-          margin-bottom: $pt-grid-size;
         }
       }
+
       .planPurpose {
         margin-bottom: $pt-grid-size * 2;
+
         &:before {
           content: "Purpose:";
         }
@@ -111,6 +134,9 @@
     }
 
     .planRevisions {
+      min-height: 10vh;
+      flex: .5;
+
       margin-top: $pt-grid-size;
       box-shadow: $pt-elevation-shadow-1;
       z-index: 0;
