@@ -175,11 +175,24 @@
       margin: 0 -4%;
     }
 
+    .roleRow, .resourceRow {
+      > * {
+        flex: .5;
+        flex-shrink: 0;
+        min-width: 50%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
     .resourceRow {
+      > :first-child {
+        margin-right: 0;
+      }
       :global .bp3-html-select {
         select {
           box-shadow: none;
-          padding-right: $pt-grid-size;
+          padding-right: $pt-grid-size * 2;
           background: transparent;
           font-size: $pt-font-size-small;
         }
