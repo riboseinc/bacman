@@ -39,14 +39,6 @@
   :local .localizedOverlayBackdrop {
     background-color: rgba($light-gray3, 0.7);
   }
-  .maximizedPanelNotice {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translateY(-50%) translateX(-50%);
-    color: white;
-    font-size: $pt-font-size-small;
-  }
 }
 
 
